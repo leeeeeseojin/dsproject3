@@ -57,22 +57,31 @@ void ListGraph::insertEdge(int from, int to, int weight) {
   cout << "Map size for vertex " << from << ": " << m_List[from].size() << endl;
 }
 
-// print graph in adjacency list format
 bool ListGraph::printGraph(ofstream *fout) {
   if (!fout) {
+    cout << "printGraph: fout is NULL!" << endl;
     return false;
   }
 
+  cout << "printGraph called, m_Size = " << m_Size << endl;
+
   // print each vertex and its adjacent edges
   for (int i = 0; i < m_Size; i++) {
+    cout << "Printing vertex " << i << ", map size: " << m_List[i].size()
+         << endl;
+
     (*fout) << "[" << i << "]";
 
     // print adjacent edges in ascending order by destination vertex
     map<int, int>::iterator it;
     for (it = m_List[i].begin(); it != m_List[i].end(); it++) {
+      cout << "  Edge to " << it->first << " with weight " << it->second
+           << endl;
       (*fout) << " -> (" << it->first << "," << it->second << ")";
     }
     (*fout) << endl;
   }
+
+  cout << "printGraph finished" << endl;
   return true;
 }
