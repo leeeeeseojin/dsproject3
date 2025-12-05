@@ -755,21 +755,19 @@ bool Centrality(Graph *graph) {
 
   for (int i = 0; i < size; i++) {
     sum[i] = 0;
-    bool reachable = true;
+    int reachableCount = 0;
 
     for (int j = 0; j < size; j++) {
       if (i != j) {
-        if (dist[i][j] == -1) {
-          // if any vertex is not reachable => unreachable
-          reachable = false;
-          break;
+        if (dist[i][j] != -1) {
+          sum[i] += dist[i][j]; // sum the shortest distance
+          reachableCount++;
         }
-        sum[i] += dist[i][j]; // sum the shortest distance
       }
     }
 
-    // if vertex is not reachable to all others => sum = -1
-    if (!reachable) {
+    // if no vertex is reachable => sum = -1
+    if (reachableCount == 0) {
       sum[i] = -1;
     }
 
@@ -789,7 +787,14 @@ bool Centrality(Graph *graph) {
     if (sum[i] == -1) {
       fout << "x";
     } else {
-      fout << (size - 1) << "/" << sum[i];
+      // count reachable vertices from i
+      int reachableCount = 0;
+      for (int j = 0; j < size; j++) {
+        if (i != j && dist[i][j] != -1) {
+          reachableCount++;
+        }
+      }
+      fout << reachableCount << "/" << sum[i];
     }
 
     if (i == mostCentral) {
