@@ -700,14 +700,17 @@ bool Centrality(Graph *graph) {
   // fill initial distances from graph edges (undirected)
   for (int i = 0; i < size; i++) {
     map<int, int> edges;
-    graph->getAdjacentEdges(i, &edges);
+    graph->getAdjacentEdgesDirect(i, &edges);
 
     map<int, int>::iterator it;
     for (it = edges.begin(); it != edges.end(); it++) {
       int j = it->first;
       int weight = it->second;
       dist[i][j] = weight; // store weights for directly connected edges
-      dist[j][i] = weight;
+
+      if (dist[j][i] == -1) {
+        dist[j][i] = weight;
+      }
     }
   }
 

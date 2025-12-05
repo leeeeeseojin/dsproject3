@@ -149,22 +149,22 @@ bool Manager::LOAD(const char *filename) {
       int firstNum;
       ss >> firstNum;
 
-      // if only one number, it is a vertex index
-      if (ss.eof() || ss.peek() == '\n' || ss.peek() == EOF) {
-        vertex = firstNum;
-      } else {
-        // if two numbers, it is destination and weight
-        int dest = firstNum;
-        int weight;
-        ss >> weight;
+      if (!(ss >> firstNum)) {
+        continue; // invalid line, skip
+      }
 
-        // insert edge from vertex to dest with weight
-        graph->insertEdge(vertex, dest, weight);
+      int secondNum;
+      if (ss >> secondNum) {
+        graph->insertEdge(vertex, firstNum, secondNum);
 
         // continue reading remaining destination-weight pairs
+        int dest, weight;
         while (ss >> dest >> weight) {
           graph->insertEdge(vertex, dest, weight);
         }
+      } else {
+        // line has only one number -> this is a vertex index
+        vertex = firstNum;
       }
     }
   } else if (type == 'M') {
