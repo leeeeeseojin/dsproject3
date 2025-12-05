@@ -153,21 +153,22 @@ bool Manager::LOAD(const char *filename) {
         nums.push_back(value);
       }
 
+      // if empty line, skip
+      if (nums.empty()) {
+        continue;
+      }
+
       // if only one number exists -> vertex index line
       if (nums.size() == 1) {
         vertex = nums[0];
-        continue;
       }
-
-      if (vertex == -1) {
-        continue;
-      }
-
-      // if line has pairs of numbers -> edges
-      for (int i = 0; i + 1 < nums.size(); i += 2) {
-        int dest = nums[i];
-        int weight = nums[i + 1];
-        graph->insertEdge(vertex, dest, weight);
+      // if two or more numbers exist -> edge (destination, weight) pairs
+      else if (vertex != -1) {
+        for (size_t i = 0; i + 1 < nums.size(); i += 2) {
+          int dest = nums[i];
+          int weight = nums[i + 1];
+          graph->insertEdge(vertex, dest, weight);
+        }
       }
     }
   } else if (type == 'M') {
