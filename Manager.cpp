@@ -131,7 +131,7 @@ bool Manager::LOAD(const char *filename) {
     // create ListGraph for adjacency list
     graph = new ListGraph(true, size);
 
-    int vertex;
+    int vertex = -1;
     string line;
 
     getline(fin, line); // skip remaining characters in size line
@@ -139,32 +139,35 @@ bool Manager::LOAD(const char *filename) {
     // read adjacency list data
     // vertex number in one line -> edge info in next line
     while (getline(fin, line)) {
-      // if line is empty, skip
-      if (line.empty()) {
+      // remove whitespace-only lines
+      if (line.find_first_not_of(" \t\r\n") == string::npos) {
         continue;
       }
 
-      // check if line contains only a vertex number
       stringstream ss(line);
-      int firstNum;
-      ss >> firstNum;
+      vector<int> nums;
+      int value;
 
-      if (!(ss >> firstNum)) {
-        continue; // invalid line, skip
+      // read all numbers in the current line
+      while (ss >> value) {
+        nums.push_back(value);
       }
 
-      int secondNum;
-      if (ss >> secondNum) {
-        graph->insertEdge(vertex, firstNum, secondNum);
+      // if only one number exists -> vertex index line
+      if (nums.size() == 1) {
+        vertex = nums[0];
+        continue;
+      }
 
-        // continue reading remaining destination-weight pairs
-        int dest, weight;
-        while (ss >> dest >> weight) {
-          graph->insertEdge(vertex, dest, weight);
-        }
-      } else {
-        // line has only one number -> this is a vertex index
-        vertex = firstNum;
+      if (vertex == -1) {
+        continue;
+      }
+
+      // if line has pairs of numbers -> edges
+      for (int i = 0; i + 1 < nums.size(); i += 2) {
+        int dest = nums[i];
+        int weight = nums[i + 1];
+        graph->insertEdge(vertex, dest, weight);
       }
     }
   } else if (type == 'M') {
