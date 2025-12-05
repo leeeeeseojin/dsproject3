@@ -41,16 +41,20 @@ void ListGraph::getAdjacentEdgesDirect(int vertex, map<int, int> *m) {
   }
 }
 
-// insert edge into adjacency list
 void ListGraph::insertEdge(int from, int to, int weight) {
   // if source or destination vertex index is out of range, terminate the
   // function
   if (from < 0 || from >= m_Size || to < 0 || to >= m_Size) {
+    cout << "insertEdge FAILED: out of range - from:" << from << " to:" << to
+         << " m_Size:" << m_Size << endl;
     return;
   }
 
   // insert edge from -> to with weight
   m_List[from][to] = weight;
+  cout << "insertEdge SUCCESS: m_List[" << from << "][" << to
+       << "] = " << weight << endl;
+  cout << "Map size for vertex " << from << ": " << m_List[from].size() << endl;
 }
 
 // print graph in adjacency list format
