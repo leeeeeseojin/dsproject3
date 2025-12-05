@@ -9,6 +9,8 @@
 // constructor - initialize manager
 Manager::Manager() {
   graph = nullptr;
+  fout.open("log.txt", ios::out | ios::trunc);
+  fout.close();
   fout.open("log.txt", ios::app);
   load = 0; // Anything is not loaded
 }
