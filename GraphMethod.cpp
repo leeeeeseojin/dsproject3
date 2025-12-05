@@ -707,6 +707,7 @@ bool Centrality(Graph *graph) {
       int j = it->first;
       int weight = it->second;
       dist[i][j] = weight; // store weights for directly connected edges
+      dist[j][i] = weight;
     }
   }
 

@@ -123,8 +123,8 @@ bool Manager::LOAD(const char *filename) {
   char type;
   int size;
 
-  fin >> type; // read graph type - L or M
-  fin >> size; // read graph size - number of vertices
+  fin >> type >> size; // read graph type - L or M
+                       // read graph size - number of vertices
 
   // create graph based on type
   if (type == 'L') {
@@ -160,6 +160,11 @@ bool Manager::LOAD(const char *filename) {
 
         // insert edge from vertex to dest with weight
         graph->insertEdge(vertex, dest, weight);
+
+        // continue reading remaining destination-weight pairs
+        while (ss >> dest >> weight) {
+          graph->insertEdge(vertex, dest, weight);
+        }
       }
     }
   } else if (type == 'M') {
