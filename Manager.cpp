@@ -158,15 +158,25 @@ bool Manager::LOAD(const char *filename) {
         continue;
       }
 
+      // DEBUG: 읽은 숫자들 출력
+      cout << "Read line: ";
+      for (int n : nums) {
+        cout << n << " ";
+      }
+      cout << endl;
+
       // if only one number exists -> vertex index line
       if (nums.size() == 1) {
         vertex = nums[0];
+        cout << "Set vertex to: " << vertex << endl;
       }
       // if two or more numbers exist -> edge (destination, weight) pairs
       else if (vertex != -1) {
         for (size_t i = 0; i + 1 < nums.size(); i += 2) {
           int dest = nums[i];
           int weight = nums[i + 1];
+          cout << "Inserting edge: " << vertex << " -> " << dest
+               << " (weight: " << weight << ")" << endl;
           graph->insertEdge(vertex, dest, weight);
         }
       }
