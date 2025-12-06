@@ -69,7 +69,7 @@ bool BFS(Graph *graph, char option, int vertex) {
 
     // get adjacent edges based on graph type
     map<int, int> edges;
-    if (option == 'Y' || option == 'O') {
+    if (option == 'O') {
       // directed graph - use direct edges only
       graph->getAdjacentEdgesDirect(current, &edges);
     } else {
@@ -92,7 +92,7 @@ bool BFS(Graph *graph, char option, int vertex) {
 
   // print BFS result
   fout << "========BFS========" << endl;
-  if (option == 'Y' || option == 'O') {
+  if (option == 'O') {
     fout << "Directed Graph BFS" << endl;
   } else {
     fout << "Undirected Graph BFS" << endl;
@@ -154,7 +154,7 @@ bool DFS(Graph *graph, char option, int vertex) {
     order.push_back(current);
 
     map<int, int> edges;
-    if (option == 'Y' || option == 'O') {
+    if (option == 'O') {
       // directed graph - use direct edges only
       graph->getAdjacentEdgesDirect(current, &edges);
     } else {
@@ -177,7 +177,7 @@ bool DFS(Graph *graph, char option, int vertex) {
 
   // print DFS result
   fout << "========DFS========" << endl;
-  if (option == 'Y' || option == 'O') {
+  if (option == 'O') {
     fout << "Directed Graph DFS" << endl;
   } else {
     fout << "Undirected Graph DFS" << endl;
@@ -318,7 +318,7 @@ bool Dijkstra(Graph *graph, char option, int vertex) {
   // check for negative weights in the graph
   for (int i = 0; i < size; i++) {
     map<int, int> edges;
-    if (option == 'Y' || option == 'O') {
+    if (option == 'O') {
       graph->getAdjacentEdgesDirect(i, &edges);
     } else {
       graph->getAdjacentEdges(i, &edges);
@@ -374,7 +374,7 @@ bool Dijkstra(Graph *graph, char option, int vertex) {
 
     // get adjacent edges based on direction option
     map<int, int> edges;
-    if (option == 'Y' || option == 'O') {
+    if (option == 'O') {
       // directed graph
       graph->getAdjacentEdgesDirect(current, &edges);
     } else {
@@ -402,7 +402,7 @@ bool Dijkstra(Graph *graph, char option, int vertex) {
 
   // print Dijkstra result
   fout << "========DIJKSTRA========" << endl;
-  if (option == 'Y' || option == 'O') {
+  if (option == 'O') {
     fout << "Directed Graph Dijkstra" << endl;
   } else {
     fout << "Undirected Graph Dijkstra" << endl;
@@ -486,7 +486,7 @@ bool Bellmanford(Graph *graph, char option, int s_vertex, int e_vertex) {
 
       // get adjacent edges
       map<int, int> edges;
-      if (option == 'Y' || option == 'O') {
+      if (option == 'O') {
         // directed graph
         graph->getAdjacentEdgesDirect(u, &edges);
       } else {
@@ -520,7 +520,7 @@ bool Bellmanford(Graph *graph, char option, int s_vertex, int e_vertex) {
 
     // get all adjacent vertices of u
     map<int, int> edges;
-    if (option == 'Y' || option == 'O') {
+    if (option == 'O') {
       graph->getAdjacentEdgesDirect(u, &edges);
     } else {
       graph->getAdjacentEdges(u, &edges);
@@ -556,7 +556,7 @@ bool Bellmanford(Graph *graph, char option, int s_vertex, int e_vertex) {
   fout.open("log.txt", ios::app);
 
   fout << "========BELLMANFORD========" << endl;
-  if (option == 'Y' || option == 'O') {
+  if (option == 'O') {
     fout << "Directed Graph Bellman-Ford" << endl;
   } else {
     fout << "Undirected Graph Bellman-Ford" << endl;
@@ -624,7 +624,7 @@ bool FLOYD(Graph *graph, char option) {
   // fill initial distances from graph edges
   for (int i = 0; i < size; i++) {
     map<int, int> edges;
-    if (option == 'Y' || option == 'O') {
+    if (option == 'O') {
       // directed graph
       graph->getAdjacentEdgesDirect(i, &edges);
     } else {
@@ -684,7 +684,7 @@ bool FLOYD(Graph *graph, char option) {
   fout << "========FLOYD========" << endl;
 
   // print graph type based on direction option
-  if (option == 'Y' || option == 'O') {
+  if (option == 'O') {
     fout << "Directed Graph Floyd" << endl;
   } else {
     fout << "Undirected Graph Floyd" << endl;
