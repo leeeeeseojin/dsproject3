@@ -12,7 +12,7 @@ ListGraph::ListGraph(bool type, int size) : Graph(type, size) {
 ListGraph::~ListGraph() { delete[] m_List; }
 
 // get adjacent edges for undirected graph
-// for undirected graph, return all edges connected to vertex (both directions)
+// for undirected graph, return all edges connected to vertex
 void ListGraph::getAdjacentEdges(int vertex, map<int, int> *m) {
   // if invalid vertex index is given, terminate the function
   if (vertex < 0 || vertex >= m_Size) {
@@ -31,7 +31,7 @@ void ListGraph::getAdjacentEdges(int vertex, map<int, int> *m) {
       // if there is an edge from i to vertex, add reverse edge
       map<int, int>::iterator found = m_List[i].find(vertex);
       if (found != m_List[i].end()) {
-        // only add if not already present (avoid overwriting)
+        // only add if not already present
         if (m->find(i) == m->end()) {
           (*m)[i] = found->second;
         }

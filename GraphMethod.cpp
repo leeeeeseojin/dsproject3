@@ -203,7 +203,6 @@ bool DFS(Graph *graph, char option, int vertex) {
 
 // use union-find to detect cycle
 // sort edges by weight and add edges that don't form cycles
-// output MST as adjacency list format
 bool Kruskal(Graph *graph) {
   // if graph is null, return false
   if (!graph) {
@@ -226,8 +225,7 @@ bool Kruskal(Graph *graph) {
       int to = it->first;
       int weight = it->second;
 
-      // for undirected graph, add edge only once (from smaller to larger
-      // vertex)
+      // undirected graph => add edge only once
       if (i < to) {
         edges.push_back(make_pair(weight, make_pair(i, to)));
       } else {
@@ -274,9 +272,8 @@ bool Kruskal(Graph *graph) {
     }
   }
 
-  // check if MST spans all vertices (size-1 edges needed)
+  // check if MST spans all vertices
   if (edgeCount < size - 1) {
-    // graph is not connected, some vertices are unreachable
     delete[] parent;
     delete[] mstAdj;
     fout.close();
@@ -297,7 +294,7 @@ bool Kruskal(Graph *graph) {
     }
     fout << endl;
   }
-  fout << "cost: " << totalCost << endl;
+  fout << "Cost: " << totalCost << endl;
   fout << "=======================" << endl;
 
   // free memory
@@ -330,8 +327,7 @@ bool Dijkstra(Graph *graph, char option, int vertex) {
     map<int, int>::iterator it;
     for (it = edges.begin(); it != edges.end(); it++) {
       if (it->second < 0) {
-        // negative weight found, return error
-        return false;
+        return false; // negative weight found, return error
       }
     }
   }
@@ -466,8 +462,6 @@ bool Bellmanford(Graph *graph, char option, int s_vertex, int e_vertex) {
   }
 
   int size = graph->getSize();
-
-  // use large value instead of -1 for infinity
   const int INF = 1e9;
 
   // initialize distance array with INF
@@ -589,7 +583,7 @@ bool Bellmanford(Graph *graph, char option, int s_vertex, int e_vertex) {
       }
     }
     fout << endl;
-    fout << "cost: " << dist[e_vertex] << endl;
+    fout << "Cost: " << dist[e_vertex] << endl;
   }
 
   fout << "=======================" << endl;
@@ -665,7 +659,7 @@ bool FLOYD(Graph *graph, char option) {
     }
   }
 
-  // check for negative cycles (diagonal elements < 0)
+  // check for negative cycles
   bool hasNegativeCycle = false;
   for (int i = 0; i < size; i++) {
     if (dist[i][i] < 0) {
@@ -805,9 +799,7 @@ bool Centrality(Graph *graph) {
   }
 
   // calculate closeness centrality for each vertex
-  // centrality = (n-1) / sum of shortest distances FROM this vertex TO all
-  // others vertex is marked as 'x' only if it cannot reach ANY other vertex
-  // (isolated)
+  // centrality = (n-1) / sum of shortest distances
   int *sum = new int[size];
   int minSum = -1;
   vector<int> mostCentral; // may have multiple vertices with same centrality
@@ -826,12 +818,12 @@ bool Centrality(Graph *graph) {
       }
     }
 
-    // if vertex cannot reach any other vertex => isolated => x
+    // if vertex cannot reach any other vertex => x
     if (reachableCount == 0) {
       sum[i] = -1;
     }
 
-    // find vertex with minimum sum (highest centrality)
+    // find vertex with minimum sum
     if (sum[i] != -1) {
       if (minSum == -1 || sum[i] < minSum) {
         minSum = sum[i];
@@ -853,11 +845,10 @@ bool Centrality(Graph *graph) {
     if (sum[i] == -1) {
       fout << "x";
     } else {
-      // print as fraction: (n-1)/sum
       fout << (size - 1) << "/" << sum[i];
     }
 
-    // check if this vertex is one of the most central
+    // check if most central
     for (size_t j = 0; j < mostCentral.size(); j++) {
       if (i == mostCentral[j]) {
         fout << " <- Most Central";

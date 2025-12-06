@@ -12,7 +12,7 @@ Manager::Manager() {
   fout.open("log.txt", ios::out | ios::trunc);
   fout.close();
   fout.open("log.txt", ios::app);
-  load = 0; // Anything is not loaded
+  load = 0;
 }
 
 // destructor - free memory and close file
@@ -95,7 +95,7 @@ void Manager::run(const char *command_txt) {
         continue;
       }
 
-      // validate option
+      // error case
       if (option != 'O' && option != 'X') {
         printErrorCode(300);
         continue;
@@ -121,7 +121,7 @@ void Manager::run(const char *command_txt) {
         continue;
       }
 
-      // validate option
+      // error case
       if (option != 'O' && option != 'X') {
         printErrorCode(400);
         continue;
@@ -159,7 +159,7 @@ void Manager::run(const char *command_txt) {
         continue;
       }
 
-      // validate option
+      // error case
       if (option != 'O' && option != 'X') {
         printErrorCode(600);
         continue;
@@ -185,7 +185,7 @@ void Manager::run(const char *command_txt) {
         continue;
       }
 
-      // validate option
+      // error case
       if (option != 'O' && option != 'X') {
         printErrorCode(700);
         continue;
@@ -210,7 +210,7 @@ void Manager::run(const char *command_txt) {
         continue;
       }
 
-      // validate option
+      // error case
       if (option != 'O' && option != 'X') {
         printErrorCode(800);
         continue;
@@ -234,11 +234,6 @@ void Manager::run(const char *command_txt) {
     else if (command == "EXIT") {
       string extra;
 
-      // check for extra arguments (EXIT should have no arguments)
-      if (ss >> extra) {
-        // EXIT doesn't have error code in spec, just ignore extra args
-      }
-
       fout << "========EXIT========" << endl;
       fout << "Success" << endl;
       fout << "=======================" << endl;
@@ -252,7 +247,6 @@ void Manager::run(const char *command_txt) {
 
 // load graph data from file
 // read graph type, size, edge information
-// create ListGraph or MatrixGraph based on type
 bool Manager::LOAD(const char *filename) {
   ifstream fin;
   fin.open(filename);

@@ -36,7 +36,7 @@ void MatrixGraph::getAdjacentEdges(int vertex, map<int, int> *m) {
     return;
   }
 
-  // find all non-zero edges from vertex (outgoing)
+  // find all non-zero edges from vertex
   for (int i = 0; i < m_Size; i++) {
     // if there is edge from vertex to i
     // store it in map
@@ -45,7 +45,7 @@ void MatrixGraph::getAdjacentEdges(int vertex, map<int, int> *m) {
     }
   }
 
-  // for undirected graph, also check incoming edges (reverse direction)
+  // for undirected graph, reverse direction
   for (int i = 0; i < m_Size; i++) {
     // if there is edge from i to vertex
     if (m_Mat[i][vertex] != 0) {
@@ -93,7 +93,6 @@ bool MatrixGraph::printGraph(ofstream *fout) {
     return false;
   }
 
-  // print header row with proper spacing
   (*fout) << "    ";
   for (int i = 0; i < m_Size; i++) {
     (*fout) << "[" << i << "] ";
