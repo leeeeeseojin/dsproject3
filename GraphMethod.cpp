@@ -73,7 +73,7 @@ bool BFS(Graph *graph, char option, int vertex) {
       // directed graph - use direct edges only
       graph->getAdjacentEdgesDirect(current, &edges);
     } else {
-      // undirected graph - use all edges
+      // undirected graph - use all edges (both directions)
       graph->getAdjacentEdges(current, &edges);
     }
 
@@ -158,7 +158,7 @@ bool DFS(Graph *graph, char option, int vertex) {
       // directed graph - use direct edges only
       graph->getAdjacentEdgesDirect(current, &edges);
     } else {
-      // undirected graph - use all edges
+      // undirected graph - use all edges (both directions)
       graph->getAdjacentEdges(current, &edges);
     }
 
@@ -203,6 +203,7 @@ bool DFS(Graph *graph, char option, int vertex) {
 
 // use union-find to detect cycle
 // sort edges by weight and add edges that don't form cycles
+// output MST as adjacency list format
 bool Kruskal(Graph *graph) {
   // if graph is null, return false
   if (!graph) {
@@ -215,6 +216,7 @@ bool Kruskal(Graph *graph) {
 
   vector<pair<int, pair<int, int>>> edges; // collect all edges from graph
 
+  // collect edges treating graph as undirected
   for (int i = 0; i < size; i++) {
     map<int, int> adj;
     graph->getAdjacentEdgesDirect(i, &adj);
@@ -224,13 +226,19 @@ bool Kruskal(Graph *graph) {
       int to = it->first;
       int weight = it->second;
 
-      edges.push_back(make_pair(
-          weight, make_pair(i, to))); // store edge - (weight, (from, to))
+      // for undirected graph, add edge only once (from smaller to larger
+      // vertex)
+      if (i < to) {
+        edges.push_back(make_pair(weight, make_pair(i, to)));
+      } else {
+        edges.push_back(make_pair(weight, make_pair(to, i)));
+      }
     }
   }
 
-  // sort edges by weight in ascending order
+  // remove duplicate edges
   sort(edges.begin(), edges.end());
+  edges.erase(unique(edges.begin(), edges.end()), edges.end());
 
   // initialize disjoint set
   int *parent = new int[size];
@@ -238,9 +246,11 @@ bool Kruskal(Graph *graph) {
     parent[i] = i;
   }
 
-  // store selected edges for MST
-  vector<pair<int, pair<int, int>>> mst;
+  // store MST as adjacency list
+  // mstAdj[i] contains pairs of (adjacent vertex, weight)
+  vector<pair<int, int>> *mstAdj = new vector<pair<int, int>>[size];
   int totalCost = 0;
+  int edgeCount = 0;
 
   // start with lower weighted edges
   for (int i = 0; i < edges.size(); i++) {
@@ -255,25 +265,44 @@ bool Kruskal(Graph *graph) {
     // if different sets -> cycle x
     // add edge to MST
     if (rootFrom != rootTo) {
-      mst.push_back(edges[i]);
+      // add edge in both directions for undirected MST
+      mstAdj[from].push_back(make_pair(to, weight));
+      mstAdj[to].push_back(make_pair(from, weight));
       totalCost += weight;
+      edgeCount++;
       unite(parent, from, to); // merge two sets
     }
   }
 
-  // print Kruskal result
+  // check if MST spans all vertices (size-1 edges needed)
+  if (edgeCount < size - 1) {
+    // graph is not connected, some vertices are unreachable
+    delete[] parent;
+    delete[] mstAdj;
+    fout.close();
+    return false;
+  }
+
+  // sort adjacency lists by vertex number
+  for (int i = 0; i < size; i++) {
+    sort(mstAdj[i].begin(), mstAdj[i].end());
+  }
+
+  // print Kruskal result in adjacency list format
   fout << "========KRUSKAL========" << endl;
-  for (int i = 0; i < mst.size(); i++) {
-    int from = mst[i].second.first;
-    int to = mst[i].second.second;
-    int weight = mst[i].first;
-    fout << "(" << from << "," << to << ") -> " << weight << endl;
+  for (int i = 0; i < size; i++) {
+    fout << "[" << i << "]";
+    for (int j = 0; j < mstAdj[i].size(); j++) {
+      fout << " " << mstAdj[i][j].first << "(" << mstAdj[i][j].second << ")";
+    }
+    fout << endl;
   }
   fout << "cost: " << totalCost << endl;
   fout << "=======================" << endl;
 
   // free memory
   delete[] parent;
+  delete[] mstAdj;
   fout.close();
 
   return true;
@@ -288,6 +317,25 @@ bool Dijkstra(Graph *graph, char option, int vertex) {
   }
 
   int size = graph->getSize();
+
+  // check for negative weights in the graph
+  for (int i = 0; i < size; i++) {
+    map<int, int> edges;
+    if (option == 'Y' || option == 'O') {
+      graph->getAdjacentEdgesDirect(i, &edges);
+    } else {
+      graph->getAdjacentEdges(i, &edges);
+    }
+
+    map<int, int>::iterator it;
+    for (it = edges.begin(); it != edges.end(); it++) {
+      if (it->second < 0) {
+        // negative weight found, return error
+        return false;
+      }
+    }
+  }
+
   ofstream fout;
   fout.open("log.txt", ios::app);
 
@@ -328,9 +376,15 @@ bool Dijkstra(Graph *graph, char option, int vertex) {
 
     visited[current] = true; // mark as visited
 
-    // get adjacent edges
+    // get adjacent edges based on direction option
     map<int, int> edges;
-    graph->getAdjacentEdgesDirect(current, &edges);
+    if (option == 'Y' || option == 'O') {
+      // directed graph
+      graph->getAdjacentEdgesDirect(current, &edges);
+    } else {
+      // undirected graph
+      graph->getAdjacentEdges(current, &edges);
+    }
 
     // update distance if a shorter path is found
     map<int, int>::iterator it;
@@ -352,47 +406,45 @@ bool Dijkstra(Graph *graph, char option, int vertex) {
 
   // print Dijkstra result
   fout << "========DIJKSTRA========" << endl;
-  if (option == 'Y') {
-    // print shortest path to all vertices
-    for (int i = 0; i < size; i++) {
-      if (i == vertex) {
-        fout << "[" << i << "] " << i << " (0)" << endl;
-        continue;
-      }
-
-      // if vertex is not reachable, skip
-      if (dist[i] == -1) {
-        continue;
-      }
-
-      // reconstruct path from vertex to i
-      vector<int> path;
-      int current = i;
-      while (current != -1) {
-        path.push_back(current);
-        current = prev[current];
-      }
-
-      // print path in reverse order
-      // start -> arrival
-      fout << "[" << i << "] ";
-      for (int j = path.size() - 1; j >= 0; j--) {
-        fout << path[j];
-        if (j > 0) {
-          fout << " -> ";
-        }
-      }
-      fout << " (" << dist[i] << ")" << endl;
-    }
+  if (option == 'Y' || option == 'O') {
+    fout << "Directed Graph Dijkstra" << endl;
   } else {
-    // print only distances
-    for (int i = 0; i < size; i++) {
-      if (dist[i] == -1) {
-        fout << "[" << i << "] " << "x" << endl;
-      } else {
-        fout << "[" << i << "] " << dist[i] << endl;
+    fout << "Undirected Graph Dijkstra" << endl;
+  }
+  fout << "Start: " << vertex << endl;
+
+  // print shortest path to all vertices
+  for (int i = 0; i < size; i++) {
+    fout << "[" << i << "] ";
+
+    // if vertex is not reachable
+    if (dist[i] == -1) {
+      fout << "x" << endl;
+      continue;
+    }
+
+    // if same as start vertex
+    if (i == vertex) {
+      fout << i << " (0)" << endl;
+      continue;
+    }
+
+    // reconstruct path from vertex to i
+    vector<int> path;
+    int current = i;
+    while (current != -1) {
+      path.push_back(current);
+      current = prev[current];
+    }
+
+    // print path in reverse order (start -> arrival)
+    for (int j = path.size() - 1; j >= 0; j--) {
+      fout << path[j];
+      if (j > 0) {
+        fout << " -> ";
       }
     }
+    fout << " (" << dist[i] << ")" << endl;
   }
   fout << "=======================" << endl;
 
@@ -414,15 +466,16 @@ bool Bellmanford(Graph *graph, char option, int s_vertex, int e_vertex) {
   }
 
   int size = graph->getSize();
-  ofstream fout;
-  fout.open("log.txt", ios::app);
 
-  // initialize distance array with -1 (= not visited)
+  // use large value instead of -1 for infinity
+  const int INF = 1e9;
+
+  // initialize distance array with INF
   int *dist = new int[size];
   int *prev = new int[size];
 
   for (int i = 0; i < size; i++) {
-    dist[i] = -1;
+    dist[i] = INF;
     prev[i] = -1;
   }
 
@@ -433,7 +486,7 @@ bool Bellmanford(Graph *graph, char option, int s_vertex, int e_vertex) {
     // for each vertex
     for (int u = 0; u < size; u++) {
       // if u is not reachable, skip
-      if (dist[u] == -1) {
+      if (dist[u] == INF) {
         continue;
       }
 
@@ -455,7 +508,7 @@ bool Bellmanford(Graph *graph, char option, int s_vertex, int e_vertex) {
         int weight = it->second;
 
         // update distance if shorter path found
-        if (dist[v] == -1 || dist[u] + weight < dist[v]) {
+        if (dist[u] + weight < dist[v]) {
           dist[v] = dist[u] + weight;
           prev[v] = u;
         }
@@ -467,7 +520,7 @@ bool Bellmanford(Graph *graph, char option, int s_vertex, int e_vertex) {
   bool hasNegativeCycle = false;
   for (int u = 0; u < size; u++) {
     // if u is not reachable, skip
-    if (dist[u] == -1) {
+    if (dist[u] == INF) {
       continue;
     }
 
@@ -486,7 +539,7 @@ bool Bellmanford(Graph *graph, char option, int s_vertex, int e_vertex) {
       int weight = it->second;
 
       // if can still improve distance, negative cycle exists
-      if (dist[v] == -1 || dist[u] + weight < dist[v]) {
+      if (dist[u] + weight < dist[v]) {
         hasNegativeCycle = true;
         break;
       }
@@ -497,42 +550,46 @@ bool Bellmanford(Graph *graph, char option, int s_vertex, int e_vertex) {
     }
   }
 
-  // print Bellman-Ford result
-  fout << "========BELLMANFORD========" << endl;
-
+  // if negative cycle detected, return error
   if (hasNegativeCycle) {
-    // if negative cycle detected, print error
-    fout << "Negative cycle detected" << endl;
-  } else if (option == 'Y' || option == 'O') {
+    delete[] dist;
+    delete[] prev;
+    return false;
+  }
+
+  // print Bellman-Ford result
+  ofstream fout;
+  fout.open("log.txt", ios::app);
+
+  fout << "========BELLMANFORD========" << endl;
+  if (option == 'Y' || option == 'O') {
     fout << "Directed Graph Bellman-Ford" << endl;
   } else {
     fout << "Undirected Graph Bellman-Ford" << endl;
   }
 
-  if (!hasNegativeCycle) {
-    // print shortest path from s_vertex to e_vertex
-    if (dist[e_vertex] == -1) {
-      // if not reachable, print x
-      fout << "x" << endl;
-    } else {
-      // reconstruct path
-      vector<int> path;
-      int current = e_vertex;
-      while (current != -1) {
-        path.push_back(current);
-        current = prev[current];
-      }
-
-      // print path in reverse order
-      for (int i = path.size() - 1; i >= 0; i--) {
-        fout << path[i];
-        if (i > 0) {
-          fout << " -> ";
-        }
-      }
-      fout << endl;
-      fout << "Cost: " << dist[e_vertex] << endl;
+  // print shortest path from s_vertex to e_vertex
+  if (dist[e_vertex] == INF) {
+    // if not reachable, print x
+    fout << "x" << endl;
+  } else {
+    // reconstruct path
+    vector<int> path;
+    int current = e_vertex;
+    while (current != -1) {
+      path.push_back(current);
+      current = prev[current];
     }
+
+    // print path in reverse order
+    for (int i = path.size() - 1; i >= 0; i--) {
+      fout << path[i];
+      if (i > 0) {
+        fout << " -> ";
+      }
+    }
+    fout << endl;
+    fout << "cost: " << dist[e_vertex] << endl;
   }
 
   fout << "=======================" << endl;
@@ -553,10 +610,11 @@ bool FLOYD(Graph *graph, char option) {
   }
 
   int size = graph->getSize();
-  ofstream fout;
-  fout.open("log.txt", ios::app);
 
-  // initialize distance matrix with -1 (= not reachable)
+  // use large value for infinity
+  const int INF = 1e9;
+
+  // initialize distance matrix with INF
   int **dist = new int *[size];
   for (int i = 0; i < size; i++) {
     dist[i] = new int[size];
@@ -564,7 +622,7 @@ bool FLOYD(Graph *graph, char option) {
       if (i == j) {
         dist[i][j] = 0;
       } else {
-        dist[i][j] = -1;
+        dist[i][j] = INF;
       }
     }
   }
@@ -598,8 +656,8 @@ bool FLOYD(Graph *graph, char option) {
       for (int j = 0; j < size; j++) {
         // if path through k exists and is shorter => update distance
         // D(a,b) = min(D(a,b), D(a,k)+D(k,b))
-        if (dist[i][k] != -1 && dist[k][j] != -1) {
-          if (dist[i][j] == -1 || dist[i][k] + dist[k][j] < dist[i][j]) {
+        if (dist[i][k] != INF && dist[k][j] != INF) {
+          if (dist[i][k] + dist[k][j] < dist[i][j]) {
             dist[i][j] = dist[i][k] + dist[k][j];
           }
         }
@@ -607,7 +665,7 @@ bool FLOYD(Graph *graph, char option) {
     }
   }
 
-  // check for negative cycles
+  // check for negative cycles (diagonal elements < 0)
   bool hasNegativeCycle = false;
   for (int i = 0; i < size; i++) {
     if (dist[i][i] < 0) {
@@ -616,18 +674,20 @@ bool FLOYD(Graph *graph, char option) {
     }
   }
 
-  // print Floyd result
-  fout << "========FLOYD========" << endl;
-
+  // if negative cycle detected, return error
   if (hasNegativeCycle) {
-    // if negative cycle detected, return error
-    fout.close();
     for (int i = 0; i < size; i++) {
       delete[] dist[i];
     }
     delete[] dist;
     return false;
   }
+
+  // print Floyd result
+  ofstream fout;
+  fout.open("log.txt", ios::app);
+
+  fout << "========FLOYD========" << endl;
 
   // print graph type based on direction option
   if (option == 'Y' || option == 'O') {
@@ -637,7 +697,7 @@ bool FLOYD(Graph *graph, char option) {
   }
 
   // print distance matrix header
-  fout << "  ";
+  fout << "    ";
   for (int i = 0; i < size; i++) {
     fout << "[" << i << "] ";
   }
@@ -647,7 +707,7 @@ bool FLOYD(Graph *graph, char option) {
   for (int i = 0; i < size; i++) {
     fout << "[" << i << "] ";
     for (int j = 0; j < size; j++) {
-      if (dist[i][j] == -1) {
+      if (dist[i][j] == INF) {
         fout << "x";
       } else {
         fout << dist[i][j];
@@ -681,10 +741,11 @@ bool Centrality(Graph *graph) {
   }
 
   int size = graph->getSize();
-  ofstream fout;
-  fout.open("log.txt", ios::app);
 
-  // initialize distance matrix with -1 (not reachable)
+  // use large value for infinity
+  const int INF = 1e9;
+
+  // initialize distance matrix with INF
   int **dist = new int *[size];
   for (int i = 0; i < size; i++) {
     dist[i] = new int[size];
@@ -692,7 +753,7 @@ bool Centrality(Graph *graph) {
       if (i == j) {
         dist[i][j] = 0;
       } else {
-        dist[i][j] = -1;
+        dist[i][j] = INF;
       }
     }
   }
@@ -700,17 +761,13 @@ bool Centrality(Graph *graph) {
   // fill initial distances from graph edges (undirected)
   for (int i = 0; i < size; i++) {
     map<int, int> edges;
-    graph->getAdjacentEdgesDirect(i, &edges);
+    graph->getAdjacentEdges(i, &edges); // use undirected edges
 
     map<int, int>::iterator it;
     for (it = edges.begin(); it != edges.end(); it++) {
       int j = it->first;
       int weight = it->second;
-      dist[i][j] = weight; // store weights for directly connected edges
-
-      if (dist[j][i] == -1) {
-        dist[j][i] = weight;
-      }
+      dist[i][j] = weight;
     }
   }
 
@@ -720,8 +777,8 @@ bool Centrality(Graph *graph) {
       for (int j = 0; j < size; j++) {
         // if path through k exists and is shorter
         // => update distance
-        if (dist[i][k] != -1 && dist[k][j] != -1) {
-          if (dist[i][j] == -1 || dist[i][k] + dist[k][j] < dist[i][j]) {
+        if (dist[i][k] != INF && dist[k][j] != INF) {
+          if (dist[i][k] + dist[k][j] < dist[i][j]) {
             dist[i][j] = dist[i][k] + dist[k][j];
           }
         }
@@ -740,7 +797,6 @@ bool Centrality(Graph *graph) {
 
   // if negative cycle detected, return error
   if (hasNegativeCycle) {
-    fout.close();
     for (int i = 0; i < size; i++) {
       delete[] dist[i];
     }
@@ -749,56 +805,64 @@ bool Centrality(Graph *graph) {
   }
 
   // calculate closeness centrality for each vertex
+  // centrality = (n-1) / sum of shortest distances FROM this vertex TO all
+  // others vertex is marked as 'x' only if it cannot reach ANY other vertex
+  // (isolated)
   int *sum = new int[size];
   int minSum = -1;
-  int mostCentral = -1;
+  vector<int> mostCentral; // may have multiple vertices with same centrality
 
   for (int i = 0; i < size; i++) {
     sum[i] = 0;
     int reachableCount = 0;
 
+    // sum distances from vertex i to all other vertices
     for (int j = 0; j < size; j++) {
       if (i != j) {
-        if (dist[i][j] != -1) {
-          sum[i] += dist[i][j]; // sum the shortest distance
+        if (dist[i][j] != INF) {
+          sum[i] += dist[i][j];
           reachableCount++;
         }
       }
     }
 
-    // if no vertex is reachable => sum = -1
+    // if vertex cannot reach any other vertex => isolated => x
     if (reachableCount == 0) {
       sum[i] = -1;
     }
 
-    // find vertex with minimum sum
+    // find vertex with minimum sum (highest centrality)
     if (sum[i] != -1) {
       if (minSum == -1 || sum[i] < minSum) {
         minSum = sum[i];
-        mostCentral = i;
+        mostCentral.clear();
+        mostCentral.push_back(i);
+      } else if (sum[i] == minSum) {
+        mostCentral.push_back(i);
       }
     }
   }
 
   // print centrality result
+  ofstream fout;
+  fout.open("log.txt", ios::app);
+
   fout << "========CENTRALITY========" << endl;
   for (int i = 0; i < size; i++) {
     fout << "[" << i << "] ";
     if (sum[i] == -1) {
       fout << "x";
     } else {
-      // count reachable vertices from i
-      int reachableCount = 0;
-      for (int j = 0; j < size; j++) {
-        if (i != j && dist[i][j] != -1) {
-          reachableCount++;
-        }
-      }
-      fout << reachableCount << "/" << sum[i];
+      // print as fraction: (n-1)/sum
+      fout << (size - 1) << "/" << sum[i];
     }
 
-    if (i == mostCentral) {
-      fout << " <- Most Central";
+    // check if this vertex is one of the most central
+    for (size_t j = 0; j < mostCentral.size(); j++) {
+      if (i == mostCentral[j]) {
+        fout << " <- Most Central";
+        break;
+      }
     }
     fout << endl;
   }

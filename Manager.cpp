@@ -33,64 +33,212 @@ void Manager::run(const char *command_txt) {
     return; // Return
   }
 
-  string command;
+  string line;
 
   // read commands line by line
   // call appropriate function
-  while (fin >> command) {
+  while (getline(fin, line)) {
+    // skip empty lines
+    if (line.find_first_not_of(" \t\r\n") == string::npos) {
+      continue;
+    }
+
+    stringstream ss(line);
+    string command;
+    ss >> command;
+
     if (command == "LOAD") {
       string filename;
-      fin >> filename;
+      string extra;
+
+      // check if filename exists
+      if (!(ss >> filename)) {
+        printErrorCode(100);
+        continue;
+      }
+
+      // check for extra arguments
+      if (ss >> extra) {
+        printErrorCode(100);
+        continue;
+      }
+
       LOAD(filename.c_str());
     }
 
     else if (command == "PRINT") {
+      string extra;
+
+      // check for extra arguments
+      if (ss >> extra) {
+        printErrorCode(200);
+        continue;
+      }
+
       PRINT();
     }
 
     else if (command == "BFS") {
       char option;
       int vertex;
-      fin >> option >> vertex;
+      string extra;
+
+      // check if all required arguments exist
+      if (!(ss >> option >> vertex)) {
+        printErrorCode(300);
+        continue;
+      }
+
+      // check for extra arguments
+      if (ss >> extra) {
+        printErrorCode(300);
+        continue;
+      }
+
+      // validate option
+      if (option != 'O' && option != 'X') {
+        printErrorCode(300);
+        continue;
+      }
+
       mBFS(option, vertex);
     }
 
     else if (command == "DFS") {
       char option;
       int vertex;
-      fin >> option >> vertex;
+      string extra;
+
+      // check if all required arguments exist
+      if (!(ss >> option >> vertex)) {
+        printErrorCode(400);
+        continue;
+      }
+
+      // check for extra arguments
+      if (ss >> extra) {
+        printErrorCode(400);
+        continue;
+      }
+
+      // validate option
+      if (option != 'O' && option != 'X') {
+        printErrorCode(400);
+        continue;
+      }
+
       mDFS(option, vertex);
     }
 
     else if (command == "KRUSKAL") {
+      string extra;
+
+      // check for extra arguments
+      if (ss >> extra) {
+        printErrorCode(500);
+        continue;
+      }
+
       mKRUSKAL();
     }
 
     else if (command == "DIJKSTRA") {
       char option;
       int vertex;
-      fin >> option >> vertex;
+      string extra;
+
+      // check if all required arguments exist
+      if (!(ss >> option >> vertex)) {
+        printErrorCode(600);
+        continue;
+      }
+
+      // check for extra arguments
+      if (ss >> extra) {
+        printErrorCode(600);
+        continue;
+      }
+
+      // validate option
+      if (option != 'O' && option != 'X') {
+        printErrorCode(600);
+        continue;
+      }
+
       mDIJKSTRA(option, vertex);
     }
 
     else if (command == "BELLMANFORD") {
       char option;
       int s_vertex, e_vertex;
-      fin >> option >> s_vertex >> e_vertex;
+      string extra;
+
+      // check if all required arguments exist
+      if (!(ss >> option >> s_vertex >> e_vertex)) {
+        printErrorCode(700);
+        continue;
+      }
+
+      // check for extra arguments
+      if (ss >> extra) {
+        printErrorCode(700);
+        continue;
+      }
+
+      // validate option
+      if (option != 'O' && option != 'X') {
+        printErrorCode(700);
+        continue;
+      }
+
       mBELLMANFORD(option, s_vertex, e_vertex);
     }
 
     else if (command == "FLOYD") {
       char option;
-      fin >> option;
+      string extra;
+
+      // check if option exists
+      if (!(ss >> option)) {
+        printErrorCode(800);
+        continue;
+      }
+
+      // check for extra arguments
+      if (ss >> extra) {
+        printErrorCode(800);
+        continue;
+      }
+
+      // validate option
+      if (option != 'O' && option != 'X') {
+        printErrorCode(800);
+        continue;
+      }
+
       mFLOYD(option);
     }
 
     else if (command == "CENTRALITY") {
+      string extra;
+
+      // check for extra arguments
+      if (ss >> extra) {
+        printErrorCode(900);
+        continue;
+      }
+
       mCentrality();
     }
 
     else if (command == "EXIT") {
+      string extra;
+
+      // check for extra arguments (EXIT should have no arguments)
+      if (ss >> extra) {
+        // EXIT doesn't have error code in spec, just ignore extra args
+      }
+
       fout << "========EXIT========" << endl;
       fout << "Success" << endl;
       fout << "=======================" << endl;
@@ -344,7 +492,7 @@ bool Manager::mCentrality() {
 }
 
 void Manager::printErrorCode(int n) {
-  fout << "========ERROR=======" << endl;
+  fout << "========ERROR========" << endl;
   fout << n << endl;
-  fout << "====================" << endl << endl;
+  fout << "=======================" << endl;
 }
